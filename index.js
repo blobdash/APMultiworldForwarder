@@ -45,6 +45,7 @@ try {
                     storage.games = item.data.games;
                     break;
                 case 'RoomInfo':
+                case 'ReceivedItems':
                     break;
                 default:
                     console.log(JSON.stringify(item));

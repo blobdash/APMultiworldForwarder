@@ -58,8 +58,17 @@ try {
     console.log(`Couldn't connect to websocket : ${error.message}`);
 }
 
+const colorMapping = {
+    0: 29089,
+    1: 6488225,
+    2: 1769633,
+    4: 13893632,
+    null: 29089
+}
+
 function sendMessage(event) {
     let buffer = "";
+    let color = 7566195;
     for(const textPart of event.data) {
         if(textPart.type) {
             switch(textPart.type) {
@@ -70,11 +79,15 @@ function sendMessage(event) {
                     const gameOfItem = storage.slot_info[`${textPart.player}`].game;
                     const entries = Object.entries(storage.games[gameOfItem].item_name_to_id);
                     buffer += entries.find(entry => entry[1] === Number(textPart.text))[0];
+                    color = colorMapping[textPart.flags];
                     break;
                 case 'location_id':
                     const gameOfLocation = storage.slot_info[`${textPart.player}`].game;
                     const entr = Object.entries(storage.games[gameOfLocation].location_name_to_id);
                     buffer += entr.find(entry => entry[1] === Number(textPart.text))[0];
+                    break;
+                case 'hint_status':
+                    // ignore text type
                     break;
                 default:
                     console.error(`Unhandled type : ${textPart.type}`);
@@ -89,7 +102,8 @@ function sendMessage(event) {
         embeds: [
             {
                 "description": `${buffer}`,
-                "fields": []
+                "fields": [],
+                "color": `${color}`
             },
         ],
         username: config.webhook_user,

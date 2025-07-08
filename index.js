@@ -1,0 +1,103 @@
+const WebSocket = require('ws');
+const uuid = require('uuid');
+const config = require('./config.json')
+let storage = {};
+
+try {
+    let client = new WebSocket(config.room);
+    client.onopen = () => {
+        console.log('Successfully opened websocket.');
+        client.send(JSON.stringify([{
+            "cmd": "Connect",
+            "game": config.game,
+            "password": config.roompw,
+            "name": config.user,
+            "uuid": uuid.v4(),
+            "version": config.version,
+            "items_handling": 3,
+            "tags": ["TextOnly"],
+            "slot_data": true
+        }]), (error) => console.error(error));
+    };
+    client.onclose = (reason) => {
+        console.log(`Closed websocket (reason : ${reason.code})`);
+    };
+    client.onmessage = (event) => {
+        const parsedEvent = JSON.parse(event.data);
+        for(const item of parsedEvent) {
+            switch(item.cmd) {
+                case 'Connected':
+                    // Happens on connect; need to store player data from this connection
+                    storage.players = item.players;
+                    storage.slot_info = item.slot_info;
+                    client.send(JSON.stringify([{
+                        "cmd": "GetDataPackage"
+                    }]), (error) => console.error(error));
+                    break;
+                case 'PrintJSON':
+                    if(item.type !== 'Tutorial') {
+                        // print received, format it and send it to webhook
+                        sendMessage(item);
+                    }
+                    break;
+                case 'DataPackage':
+                    // Received location and items mapping, storing
+                    storage.games = item.data.games;
+                    break;
+                case 'RoomInfo':
+                    break;
+                default:
+                    console.log(JSON.stringify(item));
+            }
+        }
+    };
+    client.onerror = (error) => {
+        console.log(`wserr : ${error.message}`);
+    };
+} catch (error) {
+    console.log(`Couldn't connect to websocket : ${error.message}`);
+}
+
+function sendMessage(event) {
+    let buffer = "";
+    for(const textPart of event.data) {
+        if(textPart.type) {
+            switch(textPart.type) {
+                case 'player_id':
+                    buffer += storage.slot_info[textPart.text].name;
+                    break;
+                case 'item_id':
+                    const gameOfItem = storage.slot_info[`${textPart.player}`].game;
+                    const entries = Object.entries(storage.games[gameOfItem].item_name_to_id);
+                    buffer += entries.find(entry => entry[1] === Number(textPart.text))[0];
+                    break;
+                case 'location_id':
+                    const gameOfLocation = storage.slot_info[`${textPart.player}`].game;
+                    const entr = Object.entries(storage.games[gameOfLocation].location_name_to_id);
+                    buffer += entr.find(entry => entry[1] === Number(textPart.text))[0];
+                    break;
+                default:
+                    console.error(`Unhandled type : ${textPart.type}`);
+                    break;
+            }
+        } else {
+            buffer += textPart.text;
+        }
+    }
+    const whook = {
+        content: "",
+        embeds: [
+            {
+                "description": `${buffer}`,
+                "fields": []
+            },
+        ],
+        username: config.webhook_user,
+        avatar_url: config.webhook_img
+    }
+    fetch(config.webhook, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(whook)
+    })
+}

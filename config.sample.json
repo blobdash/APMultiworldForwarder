@@ -3,8 +3,10 @@
     "user": "slot name to connect to",
     "game": "game for slot",
     "roompw": "password to the room",
-    "version": {"major": 0, "minor": 6, "build": 1, "class": "Version"},
+    "version": {"major": 0, "minor": 6, "build": 3, "class": "Version"},
     "webhook": "webhook to forward messages to",
     "webhook_user": "Archipelagogol",
-    "webhook_img": "https://i.imgur.com/HqDq0hK.png"
+    "webhook_img": "https://i.imgur.com/HqDq0hK.png",
+    "queueMode": true,
+    "queueDelay": 2500
 }

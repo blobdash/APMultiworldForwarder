@@ -3,7 +3,10 @@ const uuid = require('uuid');
 const config = require('./config.json')
 let storage = {};
 
+let queue = [];
+
 try {
+    if(config.queueMode) setInterval(processQueue, config.queueDelay);
     let client = new WebSocket(config.room);
     client.onopen = () => {
         console.log('Successfully opened websocket.');
@@ -97,22 +100,50 @@ function sendMessage(event) {
         } else {
             buffer += textPart.text;
         }
+    };
+    if(config.queueMode) {
+        queue.push({
+            "description": `${buffer}`,
+            "fields": [],
+            "color": `${color}`
+        });
+    } else {
+        const whook = {
+            content: "",
+            embeds: [
+                {
+                    "description": `${buffer}`,
+                    "fields": [],
+                    "color": `${color}`
+                },
+            ],
+            username: config.webhook_user,
+            avatar_url: config.webhook_img
+        };
+        fetch(config.webhook, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(whook)
+        });
     }
-    const whook = {
-        content: "",
-        embeds: [
-            {
-                "description": `${buffer}`,
-                "fields": [],
-                "color": `${color}`
-            },
-        ],
-        username: config.webhook_user,
-        avatar_url: config.webhook_img
+}
+
+async function processQueue() {
+    if(queue.length > 0) {
+        const whook = {
+            content: "",
+            embeds: queue.slice(0, 10),
+            username: config.webhook_user,
+            avatar_url: config.webhook_img
+        };
+        const response = await fetch(config.webhook, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(whook)
+        });
+        if(response.status === 204) {
+            // post was successful; remove items from queue.
+            queue = queue.slice(10);
+        }
     }
-    fetch(config.webhook, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(whook)
-    })
 }

@@ -4,6 +4,7 @@ const config = require('./config.json')
 let storage = {};
 
 let queue = [];
+let wsState = true;
 
 try {
     if(config.queueMode) setInterval(processQueue, config.queueDelay);
@@ -24,6 +25,7 @@ try {
     };
     client.onclose = (reason) => {
         console.log(`Closed websocket (reason : ${reason.code})`);
+        wsState = false;
     };
     client.onmessage = (event) => {
         const parsedEvent = JSON.parse(event.data);
@@ -129,6 +131,7 @@ function sendMessage(event) {
 }
 
 async function processQueue() {
+    console.log(`Current queue size : ${queue.length}`);
     if(queue.length > 0) {
         const whook = {
             content: "",
@@ -141,9 +144,13 @@ async function processQueue() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(whook)
         });
+        console.log(`Sent ${queue.slice(0,10).length} embeds. Got ${response.status}.`)
         if(response.status === 204) {
             // post was successful; remove items from queue.
             queue = queue.slice(10);
         }
+    } else if(!wsState) {
+        console.log('Queue is empty and websocket is closed. Gracefully shutting down.');
+        process.exit(0);
     }
 }

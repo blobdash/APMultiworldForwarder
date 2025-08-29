@@ -53,15 +53,15 @@ try {
                 case 'ReceivedItems':
                     break;
                 default:
-                    console.log(JSON.stringify(item));
+                    log(JSON.stringify(item));
             }
         }
     };
     client.onerror = (error) => {
-        console.log(`wserr : ${error.message}`);
+        log(`wserr : ${error.message}`);
     };
 } catch (error) {
-    console.log(`Couldn't connect to websocket : ${error.message}`);
+    log(`Couldn't connect to websocket : ${error.message}`);
 }
 
 const colorMapping = {
@@ -131,7 +131,6 @@ function sendMessage(event) {
 }
 
 async function processQueue() {
-    console.log(`Current queue size : ${queue.length}`);
     if(queue.length > 0) {
         const whook = {
             content: "",
@@ -144,13 +143,21 @@ async function processQueue() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(whook)
         });
-        console.log(`Sent ${queue.slice(0,10).length} embeds. Got ${response.status}.`)
+        log(`Sent ${queue.slice(0,10).length} embeds. Got ${response.status}.`)
         if(response.status === 204) {
             // post was successful; remove items from queue.
             queue = queue.slice(10);
+        } else {
+            log(`Rate limit was hit!`)
         }
     } else if(!wsState) {
-        console.log('Queue is empty and websocket is closed. Gracefully shutting down.');
+        log('Queue is empty and websocket is closed. Gracefully shutting down.');
         process.exit(0);
+    }
+}
+
+function log(msg) {
+    if(config.verbose) {
+        console.log(`[${new Date().toLocaleString("en-GB")}] Debug : ${msg}`);
     }
 }

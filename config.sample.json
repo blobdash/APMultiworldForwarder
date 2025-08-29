@@ -8,5 +8,6 @@
     "webhook_user": "Archipelagogol",
     "webhook_img": "https://i.imgur.com/HqDq0hK.png",
     "queueMode": true,
-    "queueDelay": 2500
+    "queueDelay": 2500,
+    "verbose": false
 }

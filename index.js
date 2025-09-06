@@ -13,15 +13,15 @@ try {
         console.log('Successfully opened websocket.');
         client.send(JSON.stringify([{
             "cmd": "Connect",
-            "game": config.game,
+            "game": null,
             "password": config.roompw,
             "name": config.user,
             "uuid": uuid.v4(),
             "version": config.version,
             "items_handling": 3,
-            "tags": ["TextOnly"],
+            "tags": ["Tracker"],
             "slot_data": true
-        }]), (error) => console.error(error));
+        }]), (error) => { if(error) console.error(error) });
     };
     client.onclose = (reason) => {
         console.log(`Closed websocket (reason : ${reason.code})`);
@@ -37,7 +37,7 @@ try {
                     storage.slot_info = item.slot_info;
                     client.send(JSON.stringify([{
                         "cmd": "GetDataPackage"
-                    }]), (error) => console.error(error));
+                    }]), (error) => { if(error) console.error(error) });
                     break;
                 case 'PrintJSON':
                     if(item.type !== 'Tutorial') {
@@ -96,11 +96,14 @@ function sendMessage(event) {
                     // ignore text type
                     break;
                 default:
-                    console.error(`Unhandled type : ${textPart.type}`);
+                    log(`Unhandled type : ${textPart.type}`);
                     break;
             }
         } else {
-            buffer += textPart.text;
+            // hide tracker clients.
+            if(!textPart.text.includes(`'Tracker'`)) {
+                buffer += textPart.text;
+            }
         }
     };
     if(config.queueMode) {

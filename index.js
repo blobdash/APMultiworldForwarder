@@ -106,6 +106,7 @@ function sendMessage(event) {
             }
         }
     };
+    if(buffer === "") return;
     if(config.queueMode) {
         queue.push({
             "description": `${buffer}`,

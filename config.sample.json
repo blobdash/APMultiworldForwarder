@@ -1,7 +1,6 @@
 {
     "room": "room websocket",
     "user": "slot name to connect to",
-    "game": "game for slot",
     "roompw": "password to the room",
     "version": {"major": 0, "minor": 6, "build": 3, "class": "Version"},
     "webhook": "webhook to forward messages to",

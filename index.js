@@ -111,7 +111,7 @@ function sendMessage(event) {
         queue.push({
             "description": `${buffer}`,
             "fields": [],
-            "color": `${color}`
+            "color": `${color ? color : 7566195}`
         });
     } else {
         const whook = {
@@ -151,6 +151,12 @@ async function processQueue() {
         if(response.status === 204) {
             // post was successful; remove items from queue.
             queue = queue.slice(10);
+        } else if(response.status === 400) {
+            // post was unsuccessful because it is malformed...
+            // dump queue to log, then slice off messages one by one
+            log(JSON.stringify(queue));
+            log("Malformed message in queue (hit 400)");
+            queue.slice(1);
         } else {
             log(`Rate limit was hit!`)
         }

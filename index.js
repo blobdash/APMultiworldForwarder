@@ -51,6 +51,8 @@ try {
                     break;
                 case 'RoomInfo':
                 case 'ReceivedItems':
+                case 'Bounced':
+                case 'RoomUpdate':
                     break;
                 default:
                     log(JSON.stringify(item));
@@ -93,6 +95,7 @@ function sendMessage(event) {
                     buffer += entr.find(entry => entry[1] === Number(textPart.text))[0];
                     break;
                 case 'hint_status':
+                case 'entrance_name':
                     // ignore text type
                     break;
                 default:
@@ -147,7 +150,9 @@ async function processQueue() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(whook)
         });
-        log(`Sent ${queue.slice(0,10).length} embeds. Got ${response.status}.`)
+        if(config.explicitQueueLogging) {
+            log(`Sent ${queue.slice(0,10).length} embeds. Got ${response.status}.`)
+        }
         if(response.status === 204) {
             // post was successful; remove items from queue.
             queue = queue.slice(10);
@@ -158,7 +163,7 @@ async function processQueue() {
             log("Malformed message in queue (hit 400)");
             queue.slice(1);
         } else {
-            log(`Rate limit was hit!`)
+            log(`Rate limit was hit! (${queue.length} in queue)`)
         }
     } else if(!wsState) {
         log('Queue is empty and websocket is closed. Gracefully shutting down.');

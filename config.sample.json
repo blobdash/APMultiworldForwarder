@@ -5,6 +5,7 @@
     "version": {"major": 0, "minor": 6, "build": 3, "class": "Version"},
     "webhook": "webhook to forward messages to",
     "webhook_user": "Archipelagogol",
+    "webhook_thread": "",
     "webhook_img": "https://i.imgur.com/HqDq0hK.png",
     "queueMode": true,
     "queueDelay": 2500,

@@ -129,7 +129,7 @@ function sendMessage(event) {
             username: config.webhook_user,
             avatar_url: config.webhook_img
         };
-        fetch(config.webhook, {
+        fetch(`${config.webhook}${config.webhook_thread != "" ? `?thread_id=${config.webhook_thread}` : ""}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(whook)
@@ -145,7 +145,7 @@ async function processQueue() {
             username: config.webhook_user,
             avatar_url: config.webhook_img
         };
-        const response = await fetch(config.webhook, {
+        const response = await fetch(`${config.webhook}${config.webhook_thread != "" ? `?thread_id=${config.webhook_thread}` : ""}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(whook)

@@ -35,8 +35,14 @@ try {
                     // Happens on connect; need to store player data from this connection
                     storage.players = item.players;
                     storage.slot_info = item.slot_info;
+                    // Accumulate game names in current room
+                    gamelist = []
+                    for(let key of Object.keys(item.slot_info)) {
+                        if(!gamelist.includes(item.slot_info[key].game)) gamelist.push(item.slot_info[key].game)
+                    }
                     client.send(JSON.stringify([{
-                        "cmd": "GetDataPackage"
+                        "cmd": "GetDataPackage",
+                        "games": gamelist
                     }]), (error) => { if(error) console.error(error) });
                     break;
                 case 'PrintJSON':
